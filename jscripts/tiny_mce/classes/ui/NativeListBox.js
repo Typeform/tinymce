@@ -28,6 +28,7 @@
 		 * @param {Object} s Optional name/value settings object.
 		 */
 		NativeListBox : function(id, s) {
+
 			this.parent(id, s);
 			this.classPrefix = 'mceNativeListBox';
 		},
@@ -111,7 +112,7 @@
 		 * @method add
 		 * @param {String} n Title for the new option.
 		 * @param {String} v Value for the new option.
-		 * @param {Object} o Optional object with settings like for example class.
+		 * @param {Object} a Optional object with settings like for example class.
 		 */
 		add : function(n, v, a) {
 			var o, t = this;
@@ -129,6 +130,7 @@
 			};
 
 			t.items.push(o);
+
 			t.onAdd.dispatch(t, o);
 		},
 
@@ -149,15 +151,47 @@
 		 * @return {String} HTML for the list box control element.
 		 */
 		renderHTML : function() {
-			var h, t = this;
+			var h = '', t = this, g = '', s = t.settings;
 
-			h = DOM.createHTML('option', {value : ''}, '-- ' + t.settings.title + ' --');
+			var attr = {id : t.id, 'class' : 'mceNativeListBox', 'aria-labelledby': t.id + '_aria'};
+
+			if ( !s.hasOwnProperty('placeholder') || typeof(s.placeholder) === 'undefined' || s.placeholder === '' ) {
+			
+				h = DOM.createHTML('option', {value : ''}, t.settings.title);
+			
+			} else {
+
+				attr['data-placeholder'] = s.placeholder;
+			}
 
 			each(t.items, function(it) {
+
+				if( g !== '' && ( !it.attribs.hasOwnProperty('group') ||  it.attribs.group !== g ) ) {
+
+					// close previous <optgroup>
+
+					h += '</optgroup">';
+				}
+
+				if( it.attribs.hasOwnProperty('group') && typeof(it.attribs.group) !== 'undefined' && it.attribs.group !== '' && it.attribs.group !== g ) {
+
+					// start <optgroup>
+
+					g = it.attribs.group;
+					h += '<optgroup label="' + g +'">';
+				}
+
 				h += DOM.createHTML('option', {value : it.value}, it.title);
 			});
 
-			h = DOM.createHTML('select', {id : t.id, 'class' : 'mceNativeListBox', 'aria-labelledby': t.id + '_aria'}, h);
+			// close optgroup, if needed
+
+			if( g !== '' ) {
+
+				h += '</optgroup">';
+			}
+
+			h = DOM.createHTML('select', attr, h);
 			h += DOM.createHTML('span', {id : t.id + '_aria', 'style': 'display: none'}, t.settings.title);
 			return h;
 		},
