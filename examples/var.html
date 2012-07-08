@@ -27,12 +27,17 @@
 		use_native_selects : true,
 
 		var_select_placeholder : '+ Add variable',
-		var_deletable : false,
+		var_class_name : 'tag',
 		var_select_options : [
 			{ name : 'FooVar', val : '1', group : 'Group 1' },
 			{ name : 'BarVar', val : '2', group : 'Group 1' },
 			{ name : 'BazVar', val : '3', group : 'Group 2' }
 		],
+		var_data : {
+			'1' : { id: 'var1', title : 'some description', text: 'FooVar' },
+			'2' : { id: 'var2', title : 'some description', text: 'BarVar' },
+			'3' : { id: 'var3', title : 'some description', text: 'BazVar' }
+		},
 
 		oninit: function(ed) {
 
