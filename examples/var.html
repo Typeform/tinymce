@@ -35,7 +35,8 @@
 		],
 
 		oninit: function(ed) {
-			$('#mce_0_vars').chosen( { disable_search_threshold : Infinity } );
+
+			$('#mce_0_vars').chosen( { disable_search_threshold : Infinity, allow_single_deselect : true, native_change_event : true } );
 		}
 	});
 
