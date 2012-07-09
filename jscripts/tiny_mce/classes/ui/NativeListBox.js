@@ -164,7 +164,7 @@
 				// create empty option and placeholder text, to be used by chosen.js
 
 				attr['data-placeholder'] = s.placeholder;
-				h = DOM.createHTML('option', {value : ''}, s.placeholder);
+				h = DOM.createHTML('option', '');
 			}
 
 			each(t.items, function(it) {
