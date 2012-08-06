@@ -88,6 +88,7 @@
 				directionality : 'ltr',
 				forced_root_block : 'p',
 				hidden_input : TRUE,
+				hidden_editor_content : false,
 				padd_empty_editor : TRUE,
 				render_ui : TRUE,
 				indentation : '30px',
@@ -795,6 +796,9 @@
 
 			if (settings.nowrap)
 				body.style.whiteSpace = "nowrap";
+
+			if (settings.hidden_editor_content)
+				body.style.visibility = "hidden";
 
 			if (settings.protect) {
 				self.onBeforeSetContent.add(function(ed, o) {
