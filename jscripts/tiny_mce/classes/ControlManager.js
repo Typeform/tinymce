@@ -333,6 +333,35 @@
 		},
 
 		/**
+		 * Creates a info control instance
+		 *
+		 * @method createInfo
+		 * @param {String} id Unique id for the new info instance. For example "last_modified".
+		 * @param {Object} s Optional settings object for the control.
+		 * @return {tinymce.ui.Control} Control instance that got created and added.
+		 */
+		createInfo : function(id, s) {
+
+			var t = this, ed = t.editor;
+			
+			if (t.get(id)) return null;
+
+			s.title = ed.translate(s.title);
+
+			s = extend({
+				title : s.title,
+				'class' : 'mce_' + id,
+				control_manager : t
+			}, s);
+
+
+			var cls = tinymce.ui.Info;
+			var c = new cls(id, s, ed);
+			return t.add(c);
+
+		},
+
+		/**
 		 * Creates a menu button control instance by id.
 		 *
 		 * @method createMenuButton

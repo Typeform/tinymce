@@ -118,6 +118,7 @@
 			<fileset dir="${classes_dir}" includes="ui/Menu.js" />
 			<fileset dir="${classes_dir}" includes="ui/DropMenu.js" />
 			<fileset dir="${classes_dir}" includes="ui/Button.js" />
+			<fileset dir="${classes_dir}" includes="ui/Info.js" />
 			<fileset dir="${classes_dir}" includes="ui/ListBox.js" />
 			<fileset dir="${classes_dir}" includes="ui/NativeListBox.js" />
 			<fileset dir="${classes_dir}" includes="ui/MenuButton.js" />

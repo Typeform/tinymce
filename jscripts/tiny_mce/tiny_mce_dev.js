@@ -115,6 +115,7 @@
 	include('ui/Menu.js');
 	include('ui/DropMenu.js');
 	include('ui/Button.js');
+	include('ui/Info.js');
 	include('ui/ListBox.js');
 	include('ui/NativeListBox.js');
 	include('ui/MenuButton.js');
