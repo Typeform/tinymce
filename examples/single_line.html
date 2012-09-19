@@ -11,9 +11,10 @@
 		// General options
 		mode : "textareas",
 		theme : "advanced",
-		plugins : "var",
+		plugins : "var, single_line, char_count",
 		invalid_elements: "p,div,span",
-		
+		width: 512,
+
 		// prevent paragraphs
 		force_br_newlines : true,
 		force_p_newlines : false,
@@ -23,10 +24,13 @@
 
 		// Theme options
 		theme_advanced_buttons1 : "variables, bold, italic, removeformat",
+		theme_advanced_buttons2 : "char_remain",
 		theme_advanced_toolbar_location : "top",	
 		theme_advanced_toolbar_align : "left",
 		theme_advanced_statusbar_location : "bottom",
 		theme_advanced_resizing : true,
+
+		char_count_overflow: false,
 
 		use_native_selects : true,
 
@@ -40,6 +44,8 @@
 
 			removeformat_selector : 'b,strong,em,i',
 		},
+
+		// var configuration
 
 		var_select_placeholder : '+ Add variable',
 		var_class_name : 'tag',
@@ -55,6 +61,7 @@
 			'var3' : { id: 'var3', title : 'some description', text: 'BazVar' }
 		},
 		var_deletable : true
+
 	});
 
 </script>
@@ -76,10 +83,12 @@
 		<div>
 			<textarea rows="15" cols="80" style="width: 80%" id="richtext1">
 				&lt;p&gt;
-					This is {{var1}} some example text that you can edit inside the &lt;strong&gt;TinyMCE editor&lt;/strong&gt;.
+					This is {{var1}} some example text that you can edit inside the &lt;strong&gt;TinyMCE editor&lt;/strong&gt;. {{var3}} Lorem ipsum dolor sit amet, consectetur adipiscing elit. {{var2}}
 				&lt;/p&gt;
 			</textarea>
 		</div>
+
+		<input type="text" value="Lorem ipsum dolor sit amet, consectetur adipiscing elit."/>
 	</div>
 </form>
 </body>

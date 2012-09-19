@@ -4,14 +4,19 @@
 <title>Full featured example</title>
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
+<link rel="stylesheet" type="text/css" href="chosen/chosen.css" />
+
 <script type="text/javascript" src="../jscripts/tiny_mce/tiny_mce_dev.js"></script>
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+<script type="text/javascript" src="rangy-core.js"></script>
+<script type="text/javascript" src="chosen/chosen.jquery.js"></script>
 <script type="text/javascript">
 	
 	tinyMCE.init({
 		// General options
 		mode : "textareas",
 		theme : "advanced",
-		plugins : "var",
+		plugins : "var, char_count",
 		invalid_elements: "p,div,span",
 		
 		// prevent paragraphs
@@ -22,8 +27,8 @@
 		remove_linebreaks : true,
 
 		// Theme options
-		theme_advanced_buttons1 : "variables, bold, italic, removeformat",
-		theme_advanced_toolbar_location : "top",	
+		theme_advanced_buttons1 : "variables, bold, italic, removeformat, char_count, char_remain",
+		theme_advanced_toolbar_location : "top",
 		theme_advanced_toolbar_align : "left",
 		theme_advanced_statusbar_location : "bottom",
 		theme_advanced_resizing : true,
@@ -43,7 +48,7 @@
 
 		var_select_placeholder : '+ Add variable',
 		var_class_name : 'tag',
-
+		//var_css_path : 'css/var.css',
 		var_select_options : [
 			{ name : 'FooVar', val : 'var1', group : 'Group 1' },
 			{ name : 'BarVar', val : 'var2', group : 'Group 1' },
@@ -54,7 +59,13 @@
 			'var2' : { id: 'var2', title : 'some description', text: 'BarVar' },
 			'var3' : { id: 'var3', title : 'some description', text: 'BazVar' }
 		},
-		var_deletable : true
+		char_count_filter : /\{\{(.+?)\}\}/g,
+		var_deletable : true,
+
+		var_oninit : function(ed) {
+
+			$('#mce_0_vars').chosen( { disable_search_threshold : Infinity, allow_single_deselect : true, native_change_event : true } );
+		}
 	});
 
 </script>
