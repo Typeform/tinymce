@@ -38,6 +38,7 @@
 			TreeWalker = tinymce.dom.TreeWalker,
 			rangeUtils = new tinymce.dom.RangeUtils(dom),
 			isValid = ed.schema.isValidChild,
+			isArray = tinymce.isArray,
 			isBlock = dom.isBlock,
 			forcedRootBlock = ed.settings.forced_root_block,
 			nodeIndex = dom.nodeIndex,
@@ -49,9 +50,9 @@
 			undef,
 			getContentEditable = dom.getContentEditable;
 
-		function isArray(obj) {
-			return obj instanceof Array;
-		};
+		function isTextBlock(name) {
+			return !!ed.schema.getTextBlocks()[name.toLowerCase()];
+		}
 
 		function getParents(node, selector) {
 			return dom.getParents(node, selector, dom.getRoot());
@@ -1037,8 +1038,9 @@
 		 * @method formatChanged
 		 * @param {String} formats Comma separated list of formats to check for.
 		 * @param {function} callback Callback with state and args when the format is changed/toggled on/off.
+		 * @param {Boolean} similar True/false state if the match should handle similar or exact formats.
 		 */
-		function formatChanged(formats, callback) {
+		function formatChanged(formats, callback, similar) {
 			var currentFormats;
 
 			// Setup format node change logic
@@ -1052,7 +1054,7 @@
 					// Check for new formats
 					each(formatChangeData, function(callbacks, format) {
 						each(parents, function(node) {
-							if (matchNode(node, format, {}, true)) {
+							if (matchNode(node, format, {}, callbacks.similar)) {
 								if (!currentFormats[format]) {
 									// Execute callbacks
 									each(callbacks, function(callback) {
@@ -1085,6 +1087,7 @@
 			each(formats.split(','), function(format) {
 				if (!formatChangeData[format]) {
 					formatChangeData[format] = [];
+					formatChangeData[format].similar = similar;
 				}
 
 				formatChangeData[format].push(callback);
@@ -1235,6 +1238,10 @@
 				siblingName = start ? 'previousSibling' : 'nextSibling';
 				root = dom.getRoot();
 
+				function isBogusBr(node) {
+					return node.nodeName == "BR" && node.getAttribute('data-mce-bogus') && !node.nextSibling;
+				};
+
 				// If it's a text node and the offset is inside the text
 				if (container.nodeType == 3 && !isWhiteSpaceNode(container)) {
 					if (start ? startOffset > 0 : endOffset < container.nodeValue.length) {
@@ -1249,7 +1256,7 @@
 
 					// Walk left/right
 					for (sibling = parent[siblingName]; sibling; sibling = sibling[siblingName]) {
-						if (!isBookmarkNode(sibling) && !isWhiteSpaceNode(sibling)) {
+						if (!isBookmarkNode(sibling) && !isWhiteSpaceNode(sibling) && !isBogusBr(sibling)) {
 							return parent;
 						}
 					}
@@ -1408,7 +1415,7 @@
 
 				// Expand to first wrappable block element or any block element
 				if (!node)
-					node = dom.getParent(container.nodeType == 3 ? container.parentNode : container, isBlock);
+					node = dom.getParent(container.nodeType == 3 ? container.parentNode : container, isTextBlock);
 
 				// Exclude inner lists from wrapping
 				if (node && format[0].wrapper)

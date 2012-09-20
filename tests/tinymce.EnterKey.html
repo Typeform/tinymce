@@ -22,6 +22,7 @@ module("tinymce.EnterKey", {
 		editor.settings.end_container_on_empty_block = false;
 		editor.settings.br_in_pre = true;
 		editor.settings.keep_styles = true;
+		delete editor.settings.force_p_newlines;
 	}
 });
 
@@ -133,7 +134,7 @@ test('Enter at end of EM inside P', function() {
 	editor.setContent('<p><em>abc</em></p>');
 	setSelection('em', 3);
 	pressEnter();
-	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br>|&nbsp;/g, ''), '<p><em>abc</em></p><p><em></em></p>');
+	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br([^>]+|)>|&nbsp;/g, ''), '<p><em>abc</em></p><p><em></em></p>');
 	equal(editor.selection.getRng(true).startContainer.nodeName, 'EM');
 });
 
@@ -149,7 +150,7 @@ test('Enter at beginning EM inside P', function() {
 	editor.setContent('<p><em>abc</em></p>');
 	setSelection('em', 0);
 	pressEnter();
-	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br>|&nbsp;/g, ''), '<p><em></em></p><p><em>abc</em></p>');
+	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br([^>]+|)>|&nbsp;/g, ''), '<p><em></em></p><p><em>abc</em></p>');
 	equal(editor.selection.getRng(true).startContainer.nodeValue, 'abc');
 });
 
@@ -157,7 +158,7 @@ test('Enter at end of STRONG in EM inside P', function() {
 	editor.setContent('<p><em><strong>abc</strong></em></p>');
 	setSelection('strong', 3);
 	pressEnter();
-	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br>|&nbsp;/g, ''), '<p><em><strong>abc</strong></em></p><p><em><strong></strong></em></p>');
+	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br([^>]+|)>|&nbsp;/g, ''), '<p><em><strong>abc</strong></em></p><p><em><strong></strong></em></p>');
 	equal(editor.selection.getRng(true).startContainer.nodeName, 'STRONG');
 });
 
@@ -173,7 +174,7 @@ test('Enter at beginning STRONG in EM inside P', function() {
 	editor.setContent('<p><em><strong>abc</strong></em></p>');
 	setSelection('strong', 0);
 	pressEnter();
-	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br>|&nbsp;/g, ''), '<p><em><strong></strong></em></p><p><em><strong>abc</strong></em></p>');
+	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br([^>]+|)>|&nbsp;/g, ''), '<p><em><strong></strong></em></p><p><em><strong>abc</strong></em></p>');
 	equal(editor.selection.getRng(true).startContainer.nodeValue, 'abc');
 });
 
@@ -213,7 +214,7 @@ test('Enter inside empty TD', function() {
 	editor.getBody().innerHTML = '<table><tr><td></td></tr></table>';
 	setSelection('td', 0);
 	pressEnter();
-	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br>|&nbsp;/g, ''), '<table><tbody><tr><td><p></p><p></p></td></tr></tbody></table>');
+	equal(cleanHtml(editor.getBody().innerHTML).replace(/<br([^>]+|)>|&nbsp;/g, ''), '<table><tbody><tr><td><p></p><p></p></td></tr></tbody></table>');
 	equal(editor.selection.getNode().nodeName, 'P');
 });
 
@@ -331,6 +332,82 @@ test('Enter inside empty li in the middle of ol', function() {
 	equal(editor.getContent(), '<ol><li>a</li></ol><p>\u00a0</p><ol><li>b</li></ol>');
 	equal(editor.selection.getNode().nodeName, 'P');
 });
+
+
+test('Enter at beginning of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 0);
+	pressEnter();
+	equal(editor.getContent(), '<ol><li></li><li><p>abcd</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+test('Enter inside middle of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 2);
+	pressEnter();
+	equal(editor.getContent(), '<ol><li><p>ab</p></li><li><p>cd</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+test('Enter at end of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 4);
+	pressEnter();
+	equal(editor.getContent(), '<ol><li><p>abcd</p></li><li></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'LI');
+});
+
+
+test('Shift+Enter at beginning of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 0);
+	pressEnter({shiftKey: true});
+	equal(editor.getContent(), '<ol><li><p><br />abcd</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+test('Shift+Enter inside middle of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 2);
+	pressEnter({shiftKey: true});
+	equal(editor.getContent(), '<ol><li><p>ab<br />cd</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+test('Shift+Enter at end of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 4);
+	pressEnter({shiftKey: true});
+	equal(editor.getContent(), '<ol><li><p>abcd<br /><br /></p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+
+test('Ctrl+Enter at beginning of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 0);
+	pressEnter({ctrlKey: true});
+	equal(editor.getContent(), '<ol><li><p>\u00a0</p><p>abcd</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+test('Ctrl+Enter inside middle of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 2);
+	pressEnter({ctrlKey: true});
+	equal(editor.getContent(), '<ol><li><p>ab</p><p>cd</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
+test('Ctrl+Enter at end of P inside LI', function() {
+	editor.getBody().innerHTML = '<ol><li><p>abcd</p></li></ol>';
+	setSelection('p', 4);
+	pressEnter({ctrlKey: true});
+	equal(editor.getContent(), '<ol><li><p>abcd</p><p>\u00a0</p></li></ol>');
+	equal(editor.selection.getNode().nodeName, 'P');
+});
+
 
 test('Enter in the middle of text in P with forced_root_block set to false', function() {
 	editor.settings.forced_root_block = false;
@@ -600,6 +677,33 @@ test('Enter at end of text in a span inside a P and keep_styles: false', functio
 	setSelection('span', 1);
 	pressEnter();
 	equal(editor.getContent(), '<p><em><span style="font-size: 13px;">X</span></em></p><p>\u00a0</p>');
+});
+
+test('Shift+enter in LI when forced_root_block: false', function() {
+	editor.settings.forced_root_block = false;
+	editor.getBody().innerHTML = '<ul><li>text</li></ul>';
+	setSelection('li', 2);
+	pressEnter({shiftKey: true});
+	equal(editor.getContent(), '<ul><li>te<br />xt</li></ul>');
+});
+
+test('Enter when forced_root_block: false and force_p_newlines : true', function() {
+	editor.settings.forced_root_block = false;
+	editor.settings.force_p_newlines = true;
+	editor.getBody().innerHTML = 'text';
+	setSelection('body', 2);
+	pressEnter();
+	equal(editor.getContent(), '<p>te</p><p>xt</p>');
+});
+
+test('Enter before BR between DIVs', function() {
+	editor.getBody().innerHTML = '<div>a<span>b</span>c</div><br /><div>d</div>';
+	var rng = editor.dom.createRng();
+	rng.setStartBefore(editor.dom.select('br')[0]);
+	rng.setEndBefore(editor.dom.select('br')[0]);
+	editor.selection.setRng(rng);
+	pressEnter();
+	equal(editor.getContent(), '<div>a<span>b</span>c</div><p>\u00a0</p><p>\u00a0</p><div>d</div>');
 });
 
 // Only test these on modern browsers

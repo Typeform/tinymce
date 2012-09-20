@@ -500,6 +500,11 @@
 				});
 			}
 
+			// Load specified content CSS last
+			if (s.content_style) {
+				t.contentStyles.push(s.content_style);
+			}
+
 			// Content editable mode ends here
 			if (s.content_editable) {
 				e = n = o = null; // Fix IE leak
@@ -1415,7 +1420,11 @@
 
 			// We must save before we hide so Safari doesn't crash
 			self.save();
-			DOM.hide(self.getContainer());
+
+			// defer the call to hide to prevent an IE9 crash #4921
+			setTimeout(function() {
+				DOM.hide(self.getContainer());
+			}, 1);
 			DOM.setStyle(self.id, 'display', self.orgDisplay);
 		},
 
@@ -1621,7 +1630,7 @@
 		 * tinyMCE.get('content id').getContent()
 		 */
 		getContent : function(args) {
-			var self = this, content;
+			var self = this, content, body = self.getBody();
 
 			// Setup args object
 			args = args || {};
@@ -1635,11 +1644,18 @@
 
 			// Get raw contents or by default the cleaned contents
 			if (args.format == 'raw')
-				content = self.getBody().innerHTML;
+				content = body.innerHTML;
+			else if (args.format == 'text')
+				content = body.innerText || body.textContent;
 			else
-				content = self.serializer.serialize(self.getBody(), args);
+				content = self.serializer.serialize(body, args);
 
-			args.content = tinymce.trim(content);
+			// Trim whitespace in beginning/end of HTML
+			if (args.format != 'text') {
+				args.content = tinymce.trim(content);
+			} else {
+				args.content = content;
+			}
 
 			// Do post processing
 			if (!args.no_events)

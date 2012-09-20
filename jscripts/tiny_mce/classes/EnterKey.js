@@ -18,7 +18,7 @@
 		var dom = editor.dom, selection = editor.selection, settings = editor.settings, undoManager = editor.undoManager, nonEmptyElementsMap = editor.schema.getNonEmptyElements();
 
 		function handleEnterKey(evt) {
-			var rng = selection.getRng(true), tmpRng, editableRoot, container, offset, parentBlock, documentMode,
+			var rng = selection.getRng(true), tmpRng, editableRoot, container, offset, parentBlock, documentMode, shiftKey,
 				newBlock, fragment, containerBlock, parentBlockName, containerBlockName, newBlockName, isAfterLastNodeInContainer;
 
 			// Returns true if the block can be split into two blocks or not
@@ -63,6 +63,11 @@
 					node = firstChilds[i];
 					if (!node.hasChildNodes() || (node.firstChild == node.lastChild && node.firstChild.nodeValue === '')) {
 						dom.remove(node);
+					} else {
+						// Remove <a> </a> see #5381
+						if (node.nodeName == "A" && (node.innerText || node.textContent) === ' ') {
+							dom.remove(node);
+						}
 					}
 				}
 			};
@@ -144,6 +149,11 @@
 				if (settings.keep_styles !== false) {
 					do {
 						if (/^(SPAN|STRONG|B|EM|I|FONT|STRIKE|U)$/.test(node.nodeName)) {
+							// Never clone a caret containers
+							if (node.id == '_mce_caret') {
+								continue;
+							}
+
 							clonedNode = node.cloneNode(false);
 							dom.setAttrib(clonedNode, 'id', ''); // Remove ID since it needs to be document unique
 
@@ -160,7 +170,7 @@
 
 				// BR is needed in empty blocks on non IE browsers
 				if (!tinymce.isIE) {
-					caretNode.innerHTML = '<br>';
+					caretNode.innerHTML = '<br data-mce-bogus="1">';
 				}
 
 				return block;
@@ -341,7 +351,7 @@
 				if (container && container.nodeType == 3 && offset >= container.nodeValue.length) {
 					// Insert extra BR element at the end block elements
 					if (!tinymce.isIE && !hasRightSideBr()) {
-						brElm = dom.create('br')
+						brElm = dom.create('br');
 						rng.insertNode(brElm);
 						rng.setStartAfter(brElm);
 						rng.setEndAfter(brElm);
@@ -426,9 +436,10 @@
 			// Setup range items and newBlockName
 			container = rng.startContainer;
 			offset = rng.startOffset;
-			newBlockName = settings.forced_root_block;
+			newBlockName = (settings.force_p_newlines ? 'p' : '') || settings.forced_root_block;
 			newBlockName = newBlockName ? newBlockName.toUpperCase() : '';
 			documentMode = dom.doc.documentMode;
+			shiftKey = evt.shiftKey;
 
 			// Resolve node index
 			if (container.nodeType == 1 && container.hasChildNodes()) {
@@ -453,7 +464,7 @@
 
 			// If editable root isn't block nor the root of the editor
 			if (!dom.isBlock(editableRoot) && editableRoot != dom.getRoot()) {
-				if (!newBlockName || evt.shiftKey) {
+				if (!newBlockName || shiftKey) {
 					insertBr();
 				}
 
@@ -463,7 +474,7 @@
 			// Wrap the current node and it's sibling in a default block if it's needed.
 			// for example this <td>text|<b>text2</b></td> will become this <td><p>text|<b>text2</p></b></td>
 			// This won't happen if root blocks are disabled or the shiftKey is pressed
-			if ((newBlockName && !evt.shiftKey) || (!newBlockName && evt.shiftKey)) {
+			if ((newBlockName && !shiftKey) || (!newBlockName && shiftKey)) {
 				container = wrapSelfAndSiblingsInDefaultBlock(container, offset);
 			}
 
@@ -475,26 +486,40 @@
 			parentBlockName = parentBlock ? parentBlock.nodeName.toUpperCase() : ''; // IE < 9 & HTML5
 			containerBlockName = containerBlock ? containerBlock.nodeName.toUpperCase() : ''; // IE < 9 & HTML5
 
-			// Handle enter inside an empty list item
-			if (parentBlockName == 'LI' && dom.isEmpty(parentBlock)) {
-				// Let the list plugin or browser handle nested lists for now
-				if (/^(UL|OL|LI)$/.test(containerBlock.parentNode.nodeName)) {
-					return false;
+			// Enter inside block contained within a LI then split or insert before/after LI
+			if (containerBlockName == 'LI' && !evt.ctrlKey) {
+				parentBlock = containerBlock;
+				parentBlockName = containerBlockName;
+			}
+
+			// Handle enter in LI
+			if (parentBlockName == 'LI') {
+				if (!newBlockName && shiftKey) {
+					insertBr();
+					return;
 				}
 
-				handleEmptyListItem();
-				return;
+				// Handle enter inside an empty list item
+				if (dom.isEmpty(parentBlock)) {
+					// Let the list plugin or browser handle nested lists for now
+					if (/^(UL|OL|LI)$/.test(containerBlock.parentNode.nodeName)) {
+						return false;
+					}
+
+					handleEmptyListItem();
+					return;
+				}
 			}
 
 			// Don't split PRE tags but insert a BR instead easier when writing code samples etc
 			if (parentBlockName == 'PRE' && settings.br_in_pre !== false) {
-				if (!evt.shiftKey) {
+				if (!shiftKey) {
 					insertBr();
 					return;
 				}
 			} else {
 				// If no root block is configured then insert a BR by default or if the shiftKey is pressed
-				if ((!newBlockName && !evt.shiftKey && parentBlockName != 'LI') || (newBlockName && evt.shiftKey)) {
+				if ((!newBlockName && !shiftKey && parentBlockName != 'LI') || (newBlockName && shiftKey)) {
 					insertBr();
 					return;
 				}
